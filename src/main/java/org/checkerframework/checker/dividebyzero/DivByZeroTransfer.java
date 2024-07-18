@@ -83,10 +83,8 @@ public class DivByZeroTransfer extends CFTransfer {
       case EQ:
         return rhs;
       case NE:
-        if(equal(rhs,reflect(Is0.class))){
-          return reflect(GreaterThan0.class);
-        }
-        return equal(rhs,reflect(GreaterThan0.class)) ? reflect(GreaterThan0.class) : reflect(LessThan0.class);
+        //If the right-hand side is 0 and the left-hand side isn't 0 return the left hand side, otherwise return top.
+          return (equal(rhs,reflect(Is0.class)) && !equal(lhs,reflect(Is0.class))) ? lhs : top();
       case LT:
         if(equal(rhs,reflect(Is0.class))){
           return reflect(LessThan0.class);
@@ -152,9 +150,9 @@ public class DivByZeroTransfer extends CFTransfer {
         }
         break;
       case MINUS:
-        //If the left and right operand are both 0, return is0;
-        if(equal(lhs,reflect(Is0.class)) && equal(rhs,reflect(Is0.class))){
-          return reflect(Is0.class);
+        //If right operand is 0, return lhs;
+        if(equal(rhs,reflect(Is0.class))){
+          return lhs;
           //If just the lhs is 0, return the opposite of the rhs (LT0 -> GT0 vice versa.)
         }else if(equal(lhs,reflect(Is0.class)) && !equal(rhs,reflect(Is0.class))){
           return equal(rhs,reflect(LessThan0.class)) ? reflect(GreaterThan0.class) : reflect(LessThan0.class);
