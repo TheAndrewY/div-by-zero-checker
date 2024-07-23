@@ -30,7 +30,7 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
     // A BinaryTree can represent any binary operator, including + or -.
     // TODO
     if(DIVISION_OPERATORS.contains(node.getKind())){
-      return hasAnnotation(node.getRightOperand(), Is0.class) || hasAnnotation(node.getRightOperand(), Top.class) || hasAnnotation(node.getRightOperand(), Bottom.class);
+      return hasAnnotation(node.getRightOperand(), Is0.class) || hasAnnotation(node.getRightOperand(), Top.class);
     }
     return false;
   }
@@ -47,7 +47,7 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
     // such as "x += 10".
     // TODO
     if(DIVISION_OPERATORS.contains(node.getKind())){
-      return hasAnnotation(node.getExpression(), Is0.class) || hasAnnotation(node.getExpression(), Top.class) || hasAnnotation(node.getExpression(), Bottom.class);
+      return hasAnnotation(node.getExpression(), Is0.class) || hasAnnotation(node.getExpression(), Top.class);
     }
     return false;
   }

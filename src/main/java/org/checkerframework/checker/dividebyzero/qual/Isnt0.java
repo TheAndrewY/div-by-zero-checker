@@ -5,6 +5,6 @@ import java.lang.annotation.Target;
 
 import org.checkerframework.framework.qual.SubtypeOf;
 
-@SubtypeOf({Isnt0.class})
+@SubtypeOf({Top.class})
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
-public @interface GreaterThan0 {}
+public @interface Isnt0 {}

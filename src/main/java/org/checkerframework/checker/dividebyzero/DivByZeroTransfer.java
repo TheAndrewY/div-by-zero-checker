@@ -84,28 +84,29 @@ public class DivByZeroTransfer extends CFTransfer {
         return rhs;
       case NE:
         if(equal(rhs,reflect(Is0.class))){
-          return reflect(GreaterThan0.class);
+          return reflect(Isnt0.class);
         }
-        return equal(rhs,reflect(GreaterThan0.class)) ? reflect(GreaterThan0.class) : reflect(LessThan0.class);
+        return top();
       case LT:
         if(equal(rhs,reflect(Is0.class))){
           return reflect(LessThan0.class);
-        }else{
-          return lhs;
         }
+        return equal(rhs,reflect(GreaterThan0.class)) ? top() : reflect(LessThan0.class);
       case GT:
         if(equal(rhs,reflect(Is0.class))){
           return reflect(GreaterThan0.class);
-        }else{
-          return lhs;
         }
+        return equal(rhs,reflect(LessThan0.class)) ? top() : reflect(GreaterThan0.class);
       case LE:
-        case GE:
-            if(equal(rhs,reflect(Is0.class))){
-              return reflect(Is0.class);
-        }else{
-          return lhs;
+        if(equal(rhs,reflect(Is0.class))){
+          return top();
         }
+        return equal(rhs,reflect(GreaterThan0.class)) ? top() : reflect(LessThan0.class);
+      case GE:
+        if(equal(rhs,reflect(Is0.class))){
+          return top();
+        }
+        return equal(rhs,reflect(LessThan0.class)) ? top() : reflect(GreaterThan0.class);
     }
     return lhs;
   }
@@ -137,17 +138,17 @@ public class DivByZeroTransfer extends CFTransfer {
     }
     switch(operator){
       case PLUS:
-        //If the types are the same, return the type.
-        if(equal(lhs,rhs)){
+        //If the types are the same (excluding Inst0), return the type.
+        if(equal(lhs,rhs) && !equal(lhs,reflect(Isnt0.class))){
           return lhs;
           //If one operand is equal to 0 and the other isn't, return the non-zero operand type.
         }else if(equal(lhs,reflect(Is0.class)) && !equal(rhs,reflect(Is0.class)) || equal(rhs,reflect(Is0.class)) && !equal(lhs,reflect(Is0.class))){
           return equal(lhs,reflect(Is0.class)) ? rhs : lhs;
-          //If one operand is LT0 while the other isn't equal to GT0, return LT0
-        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(GreaterThan0.class)) || equal(rhs,reflect(LessThan0.class)) && !equal(lhs,reflect(GreaterThan0.class))){
+          //If one operand is LT0 while the other isn't equal to GT0 or Isnt0, return LT0
+        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(Isnt0.class)) || equal(rhs,reflect(LessThan0.class)) && !equal(lhs,reflect(GreaterThan0.class)) && !equal(lhs,reflect(Isnt0.class))){
           return reflect(LessThan0.class);
-          //If one operand is GT0 and the other is not LT0, return GT0
-        }else if(equal(lhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(LessThan0.class)) || equal(rhs,reflect(GreaterThan0.class)) && !equal(lhs,reflect(LessThan0.class))){
+          //If one operand is GT0 and the other is not LT0 or Isnt0, return GT0
+        }else if(equal(lhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(LessThan0.class)) && !equal(rhs,reflect(GreaterThan0.class)) || equal(rhs,reflect(GreaterThan0.class)) && !equal(lhs,reflect(LessThan0.class)) && !equal(lhs,reflect(GreaterThan0.class))){
           return reflect(GreaterThan0.class);
         }
         break;
@@ -155,43 +156,59 @@ public class DivByZeroTransfer extends CFTransfer {
         //If the left and right operand are both 0, return is0;
         if(equal(lhs,reflect(Is0.class)) && equal(rhs,reflect(Is0.class))){
           return reflect(Is0.class);
-          //If just the lhs is 0, return the opposite of the rhs (LT0 -> GT0 vice versa.)
-        }else if(equal(lhs,reflect(Is0.class)) && !equal(rhs,reflect(Is0.class))){
+          //If just the lhs is 0 and the rhs isnt isnt0, return the opposite of the rhs (LT0 -> GT0 vice versa.)
+        }else if(equal(lhs,reflect(Is0.class)) && !equal(rhs,reflect(Is0.class)) && !equal(rhs,reflect(Isnt0.class))){
           return equal(rhs,reflect(LessThan0.class)) ? reflect(GreaterThan0.class) : reflect(LessThan0.class);
-          //If left operand is unique from the right operand, return the type of the left operand.
-        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(LessThan0.class)) || equal(lhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(GreaterThan0.class))){
+          //If left operand is unique from the right operand (excluding Isnt0), return the type of the left operand.
+        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(LessThan0.class))&& !equal(rhs,reflect(Isnt0.class)) || equal(lhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(Isnt0.class))){
           return lhs;
+          //If one operand is Is0 and the other is Isnt0, return Isnt0.
+        }else if(equal(lhs,reflect(Isnt0.class)) && equal(rhs,reflect(Is0.class)) || equal(rhs,reflect(Isnt0.class)) && equal(lhs,reflect(Is0.class))){
+          return reflect(Isnt0.class);
         }
         break;
       case TIMES:
         //If either operand is 0, return is0.
         if(equal(lhs,reflect(Is0.class)) || equal(rhs,reflect(Is0.class))){
           return reflect(Is0.class);
-          //If the left operand is LT0, return the opposite of the right operand.
-        }else if(equal(lhs,reflect(LessThan0.class))){
+          //If the left operand is LT0 and the right operand isnt Isnt0, return the opposite of the right operand.
+        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(Isnt0.class))){
           return equal(rhs,reflect(LessThan0.class)) ? reflect(GreaterThan0.class) : reflect(LessThan0.class);
-          //If the left operand is GT0, return the type of the right operand.
-        }else if(equal(lhs,reflect(GreaterThan0.class))){
+          //If the left operand is GT0 and the right operand isnt Isnt0, return the type of the right operand.
+        }else if(equal(lhs,reflect(GreaterThan0.class)) && equal(rhs,reflect(Isnt0.class))){
           return equal(rhs,reflect(LessThan0.class)) ? reflect(LessThan0.class) : reflect(GreaterThan0.class);
-        }break;
+          //If one operand is Isnt0, and the other isnt Is0, return Isnt0.
+        }else if(equal(lhs,reflect(Isnt0.class)) && !equal(rhs,reflect(Is0.class)) || equal(rhs,reflect(Isnt0.class)) && !equal(lhs,reflect(Is0.class))){
+          return reflect(Isnt0.class);
+        }
+        break;
       case DIVIDE:
         //If the denominator is0, return bottom (error)
         if(equal(rhs,reflect(Is0.class))){
           return bottom();
           //If the numerator is0 return is0
-        }else if(equal(lhs,reflect(Is0.class))){
+        }else if(equal(lhs,reflect(Is0.class))) {
           return reflect(Is0.class);
-          //If both operands are either LT0 or GT0, return their type
-        }else if(equal(lhs,rhs)){
-          return lhs;
-        }else{
-          return reflect(LessThan0.class);
+          //If left operand is LT0 and right operand isnt Isnt0, return opposite sign of rhs;
+        }else if(equal(lhs,reflect(LessThan0.class)) && !equal(rhs,reflect(Isnt0.class))){
+          return equal(rhs,reflect(GreaterThan0.class)) ? lhs : reflect(GreaterThan0.class);
+          //If left operand is GT0 and right operand isnt Isnt0, return LT0 if right operand is LT0;
+        }else if(equal(lhs,reflect(GreaterThan0.class)) && !equal(rhs,reflect(Isnt0.class))){
+          return equal(rhs,reflect(LessThan0.class)) ? rhs : reflect(GreaterThan0.class);
         }
       case MOD:
+        //If the right operand is 0, return bottom
         if(equal(rhs,reflect(Is0.class))) {
           return bottom();
+          //If the left operand is Isnt0, return top
+        }else if(equal(lhs,reflect(Isnt0.class))){
+          return top();
+          //If the left operand is 0 and the right operand is Isnt0, return is 0;
+        }else if(equal(lhs,reflect(Is0.class)) && equal(rhs,reflect(Isnt0.class))){
+          return reflect(Is0.class);
+        }else{
+          return lhs;
         }
-        return lhs;
     }
     return top();
   }
